@@ -1,66 +1,17 @@
-## Foundry
+# Foundry Lottery Game
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## About
 
-Foundry consists of:
+A proveably random winner generating lottery game.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Game Rules
+1. Any user can buy a ticket and enter the game.
+2. After a certain period of time, the winner will be randomly choosen and rewarded with the pool money.
+3. The winner will be proveably randomly chosen and there is no space for cheating or manipulation because everything is programmtically and automatically done.
+4. All the best!
 
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### Technologies Used
+1. Solidity --> Smart Contract and Unit Testing Development
+2. Foundry --> Unit testing the program
+3. Chainlink VRF --> Generating random number
+4. Chainlink Automation --> Ending game and rewarding random winner
