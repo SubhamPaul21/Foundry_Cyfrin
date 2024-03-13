@@ -12,6 +12,13 @@ import {ConfirmedOwner} from "chainlink/v0.8/shared/access/ConfirmedOwner.sol";
 /// @dev Implements Chainlink VRFv2
 contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
     error Lottery__NotEnoughETHSent();
+    error Lottery__TransferFailed();
+    error Lottery__LotteryNotOpen();
+
+    enum LotteryState {
+        OPEN,
+        CALCULATING
+    }
 
     /** @dev Variable to set the minimum number of confirmation blocks on VRF requests */
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -34,8 +41,13 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
     address payable[] private s_lotteryPlayers;
     /** @dev Variable to store the last time stamp */
     uint256 private s_lastTimeStamp;
+    /** @dev Variable to store the recent winner's address */
+    address private s_recentWinner;
+    /** @dev Variable to store the current Lottery State */
+    LotteryState private s_lotteryState;
 
     event EnteredLottery(address indexed player);
+    event PickedWinner(address indexed winner);
 
     constructor(
         uint256 entranceFee,
@@ -52,12 +64,17 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
         s_lastTimeStamp = block.timestamp;
+        s_lotteryState = LotteryState.OPEN;
     }
 
     // Function to enter the lottery game
     function enterLotteryGame() external payable {
         if (msg.value < i_entranceFee) {
             revert Lottery__NotEnoughETHSent();
+        }
+
+        if (s_lotteryState != LotteryState.OPEN) {
+            revert Lottery__LotteryNotOpen();
         }
 
         emit EnteredLottery(msg.sender);
@@ -69,6 +86,8 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
         if ((block.timestamp - s_lastTimeStamp) < i_interval) {
             revert();
         }
+
+        s_lotteryState = LotteryState.CALCULATING;
 
         // Will revert if subscription is not set and funded.
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
@@ -83,7 +102,23 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
     function fulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
-    ) internal override {}
+    ) internal override {
+        uint256 indexOfWinner = _randomWords[0] % s_lotteryPlayers.length;
+        address payable winner = s_lotteryPlayers[indexOfWinner];
+        s_recentWinner = winner;
+        // Set lottery state back to OPEN for players to enter the game
+        s_lotteryState = LotteryState.OPEN;
+        // Reset the lottery players list for initiating new game
+        s_lotteryPlayers = new address payable[](0);
+        // Set the last time stamp to current time for new lottery game calculations
+        s_lastTimeStamp = block.timestamp;
+        // Send the lottery winning amount to random chosen winner
+        (bool sent, ) = winner.call{value: address(this).balance}("");
+        if (!sent) {
+            revert Lottery__TransferFailed();
+        }
+        emit PickedWinner(winner);
+    }
 
     /** Getter Functions */
     function get_EntranceFee() external view returns (uint256) {
