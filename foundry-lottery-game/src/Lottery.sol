@@ -4,16 +4,16 @@ pragma solidity ^0.8.20;
 import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Interface} from "chainlink/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "chainlink/v0.8/vrf/VRFConsumerBaseV2.sol";
-import {ConfirmedOwner} from "chainlink/v0.8/shared/access/ConfirmedOwner.sol";
 
 /// @title Lottery Game
 /// @author Subham Paul
 /// @notice This is the program/smart contract that will automatically handle the game logic and winner declaration.
 /// @dev Implements Chainlink VRFv2
-contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
+contract Lottery is Script, VRFConsumerBaseV2 {
     error Lottery__NotEnoughETHSent();
     error Lottery__TransferFailed();
     error Lottery__LotteryNotOpen();
+    error Lottery__UpKeepNotNeeded(uint256, uint256, uint8);
 
     enum LotteryState {
         OPEN,
@@ -56,7 +56,7 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
         bytes32 gasLane,
         uint64 subscriptionId,
         uint32 callbackGasLimit
-    ) VRFConsumerBaseV2(vrfCoordinator) ConfirmedOwner(msg.sender) {
+    ) VRFConsumerBaseV2(vrfCoordinator) {
         i_entranceFee = entranceFee;
         i_interval = interval;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
@@ -81,24 +81,6 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
         s_lotteryPlayers.push(payable(msg.sender));
     }
 
-    // Function to pick random winner
-    function pickWinner() external onlyOwner {
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
-            revert();
-        }
-
-        s_lotteryState = LotteryState.CALCULATING;
-
-        // Will revert if subscription is not set and funded.
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(
-            i_gasLane,
-            i_subscriptionId,
-            REQUEST_CONFIRMATIONS,
-            i_callbackGasLimit,
-            NUM_OF_RANDOM_WORDS
-        );
-    }
-
     function fulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
@@ -118,6 +100,39 @@ contract Lottery is Script, VRFConsumerBaseV2, ConfirmedOwner {
             revert Lottery__TransferFailed();
         }
         emit PickedWinner(winner);
+    }
+
+    function checkUpkeep(
+        bytes memory /* checkData */
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
+        upkeepNeeded =
+            ((block.timestamp - s_lastTimeStamp) >= i_interval) &&
+            (s_lotteryState == LotteryState.OPEN) &&
+            (s_lotteryPlayers.length > 0) &&
+            (address(this).balance > 0);
+        return (upkeepNeeded, "0x0");
+    }
+
+    // Function to pick random winner
+    function performUpkeep(bytes calldata /* performData */) external {
+        (bool upKeepNeeded, ) = checkUpkeep("");
+        if (!upKeepNeeded) {
+            revert Lottery__UpKeepNotNeeded(
+                address(this).balance,
+                s_lotteryPlayers.length,
+                uint256(s_lotteryState)
+            );
+        }
+
+        s_lotteryState = LotteryState.CALCULATING;
+        // Will revert if subscription is not set and funded.
+        i_vrfCoordinator.requestRandomWords(
+            i_gasLane,
+            i_subscriptionId,
+            REQUEST_CONFIRMATIONS,
+            i_callbackGasLimit,
+            NUM_OF_RANDOM_WORDS
+        );
     }
 
     /** Getter Functions */
