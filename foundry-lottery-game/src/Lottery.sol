@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Interface} from "chainlink/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "chainlink/v0.8/vrf/VRFConsumerBaseV2.sol";
 
@@ -9,7 +8,7 @@ import {VRFConsumerBaseV2} from "chainlink/v0.8/vrf/VRFConsumerBaseV2.sol";
 /// @author Subham Paul
 /// @notice This is the program/smart contract that will automatically handle the game logic and winner declaration.
 /// @dev Implements Chainlink VRFv2
-contract Lottery is Script, VRFConsumerBaseV2 {
+contract Lottery is VRFConsumerBaseV2 {
     error Lottery__NotEnoughETHSent();
     error Lottery__TransferFailed();
     error Lottery__LotteryNotOpen();
@@ -82,10 +81,10 @@ contract Lottery is Script, VRFConsumerBaseV2 {
     }
 
     function fulfillRandomWords(
-        uint256 _requestId,
-        uint256[] memory _randomWords
+        uint256 /* requestId */,
+        uint256[] memory randomWords
     ) internal override {
-        uint256 indexOfWinner = _randomWords[0] % s_lotteryPlayers.length;
+        uint256 indexOfWinner = randomWords[0] % s_lotteryPlayers.length;
         address payable winner = s_lotteryPlayers[indexOfWinner];
         s_recentWinner = winner;
         // Set lottery state back to OPEN for players to enter the game
@@ -120,7 +119,7 @@ contract Lottery is Script, VRFConsumerBaseV2 {
             revert Lottery__UpKeepNotNeeded(
                 address(this).balance,
                 s_lotteryPlayers.length,
-                uint256(s_lotteryState)
+                uint8(s_lotteryState)
             );
         }
 
