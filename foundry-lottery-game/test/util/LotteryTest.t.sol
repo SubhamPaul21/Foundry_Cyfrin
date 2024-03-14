@@ -141,7 +141,7 @@ contract LotteryTest is Test {
     }
 
     /////////////////////////
-    // performUpKeep         //
+    // performUpKeep       //
     /////////////////////////
 
     function test_PerformUpKeepOnlyRunsWhenCheckUpKeepIsTrue() public {
@@ -186,9 +186,9 @@ contract LotteryTest is Test {
         assert(uint256(lottery.get_LotteryState()) == 1);
     }
 
-    /////////////////////////
-    // fullfillRandomWords         //
-    /////////////////////////
+      //////////////////////////
+     // fullfillRandomWords  //
+    //////////////////////////
 
     function test_FulfillRandomWordsCanOnlyBeCalledAfterPerformUpKeep(
         uint256 randomRequestID
