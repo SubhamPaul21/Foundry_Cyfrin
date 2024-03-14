@@ -47,6 +47,7 @@ contract Lottery is VRFConsumerBaseV2 {
 
     event EnteredLottery(address indexed player);
     event PickedWinner(address indexed winner);
+    event RequestedWinner(uint256 indexed requestId);
 
     constructor(
         uint256 entranceFee,
@@ -125,13 +126,14 @@ contract Lottery is VRFConsumerBaseV2 {
 
         s_lotteryState = LotteryState.CALCULATING;
         // Will revert if subscription is not set and funded.
-        i_vrfCoordinator.requestRandomWords(
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit,
             NUM_OF_RANDOM_WORDS
         );
+        emit RequestedWinner(requestId);
     }
 
     /** Getter Functions */
