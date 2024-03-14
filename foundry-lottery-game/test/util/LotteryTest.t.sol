@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Lottery} from "../../src/Lottery.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {DeployLottery} from "../../script/DeployLottery.s.sol";
+import {CreateSubscription} from "../../script/Interactions.s.sol";
 
 contract LotteryTest is Test {
     event EnteredLottery(address indexed player);
@@ -20,6 +21,7 @@ contract LotteryTest is Test {
     bytes32 private gasLane;
     uint64 private subscriptionId;
     uint32 private callbackGasLimit;
+    address private link;
 
     function setUp() external {
         DeployLottery deployer = new DeployLottery();
@@ -30,8 +32,16 @@ contract LotteryTest is Test {
             vrfCoordinator,
             gasLane,
             subscriptionId,
-            callbackGasLimit
+            callbackGasLimit,
+            link
         ) = helperConfig.activeNetworkConfig();
+
+        if (subscriptionId == 0) {
+            subscriptionId = new CreateSubscription().createSubscription(
+                vrfCoordinator
+            );
+        }
+
         vm.deal(PLAYER, STARTING_USER_BALANCE);
     }
 
@@ -57,6 +67,18 @@ contract LotteryTest is Test {
         vm.startPrank(PLAYER);
         vm.expectEmit(true, false, false, false);
         emit EnteredLottery(PLAYER);
+        lottery.enterLotteryGame{value: entranceFee}();
+        vm.stopPrank();
+    }
+
+    function test_CannotEnterGameWhenCalculatingWinner() public {
+        vm.startPrank(PLAYER);
+        lottery.enterLotteryGame{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        lottery.performUpkeep("");
+
+        vm.expectRevert(Lottery.Lottery__LotteryNotOpen.selector);
         lottery.enterLotteryGame{value: entranceFee}();
         vm.stopPrank();
     }
