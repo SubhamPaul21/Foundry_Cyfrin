@@ -10,3 +10,9 @@
 [submodule "foundry-lottery-game/lib/chainlink-brownie-contracts"]
 	path = foundry-lottery-game/lib/chainlink-brownie-contracts
 	url = https://github.com/smartcontractkit/chainlink-brownie-contracts
+[submodule "foundry-lottery-game/lib/solmate"]
+	path = foundry-lottery-game/lib/solmate
+	url = https://github.com/transmissions11/solmate
+[submodule "foundry-lottery-game/lib/foundry-devops"]
+	path = foundry-lottery-game/lib/foundry-devops
+	url = https://github.com/Cyfrin/foundry-devops
