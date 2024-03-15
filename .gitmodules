@@ -19,3 +19,6 @@
 [submodule "ERC-20-Token/lib/forge-std"]
 	path = ERC-20-Token/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "ERC-20-Token/lib/openzeppelin-contracts"]
+	path = ERC-20-Token/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
