@@ -21,7 +21,10 @@ contract MintBasicNFT is Script {
 
     function mintNFTWithRecentDeployedContract(address contractAddress) public {
         vm.startBroadcast();
-        BasicNFT(contractAddress).mintNft(msg.sender, SNOWY);
+        BasicNFT(contractAddress).mintNft(
+            0xdb144f2Ec10d3F13222DD405cFA37B661C0b6e27,
+            SNOWY
+        );
         vm.stopBroadcast();
     }
 }
