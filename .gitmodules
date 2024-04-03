@@ -22,9 +22,12 @@
 [submodule "ERC-20-Token/lib/openzeppelin-contracts"]
 	path = ERC-20-Token/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "ERC-721-Token/lib/forge-std"]
-	path = ERC-721-Token/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
 [submodule "ERC-721-Token/lib/openzeppelin-contracts"]
 	path = ERC-721-Token/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "ERC-721-Token/lib/foundry-devops"]
+	path = ERC-721-Token/lib/foundry-devops
+	url = https://github.com/Cyfrin/foundry-devops
+[submodule "ERC-721-Token/lib/forge-std"]
+	path = ERC-721-Token/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
